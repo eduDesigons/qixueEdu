@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  api:
+    name: qixue-api
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qixue-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: qixue-api/go.mod
+          cache-dependency-path: qixue-api/go.sum
+      - name: Vet
+        run: go vet ./...
+      - name: Test
+        run: go test ./...
+      - name: Build
+        run: go build -o /tmp/qixue-api-server ./cmd/server
+
+  admin:
+    name: qixue-admin
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qixue-admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: qixue-admin/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+
+  web:
+    name: qixue-web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qixue-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: qixue-web/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run build

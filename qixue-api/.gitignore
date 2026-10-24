@@ -1,0 +1,6 @@
+.env
+/bin/
+*.exe
+/public/
+/logs/
+!/storage/fonts/
