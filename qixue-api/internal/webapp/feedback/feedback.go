@@ -7,7 +7,7 @@ import (
 
 	"qixue-api/internal/http/middleware"
 	"qixue-api/internal/http/response"
-	feedbacksvc "qixue-api/internal/service/feedback"
+	feedbacksvc "qixue-api/internal/service/webapp/feedback"
 )
 
 type Handler struct {

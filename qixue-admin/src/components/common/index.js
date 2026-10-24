@@ -1,5 +1,6 @@
 export { default as AppCard } from './AppCard.vue'
 export { default as AppImagePreview } from './AppImagePreview.vue'
+export { default as PwaPrompt } from './PwaPrompt.vue'
 export { default as PaperGradeModal } from './PaperGradeModal.vue'
 export { default as PaperRecordCards } from './PaperRecordCards.vue'
 export { default as SendMessageModal } from './SendMessageModal.vue'

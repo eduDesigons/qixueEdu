@@ -73,6 +73,8 @@ cd qixue-admin && npm run build
 cd qixue-web && npm run build
 ```
 
+学员端与管理端构建后均带 PWA（可安装到桌面、有版本更新提示）。安装能力依赖站点 **HTTPS**（本机 localhost 除外）。
+
 发版读 `qixue-api/.env` 的 `STATIC_PUBLISH`（`bunny` | `local`）：
 
 ```bash

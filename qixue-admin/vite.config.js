@@ -14,6 +14,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig, loadEnv } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 import removeNoMatch from 'vite-plugin-router-warn'
 import { pluginIcons, pluginPagePathes } from './build/plugin-isme'
 
@@ -53,6 +54,46 @@ export default defineConfig(async ({ mode }) => {
     pluginIcons(),
     // 移除非必要的vue-router动态路由警告: No match found for location with path
     removeNoMatch(),
+    VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
+      registerType: 'prompt',
+      includeAssets: ['favicon.png', 'pwa/*.png'],
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,woff,ttf}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
+      manifest: {
+        id: '/',
+        name: '启学管理后台',
+        short_name: '启学管理',
+        description: '启学管理端：课程、学员与站点配置',
+        theme_color: '#316C72',
+        background_color: '#f4f7f7',
+        display: 'standalone',
+        display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],
+        orientation: 'any',
+        lang: 'zh-CN',
+        dir: 'ltr',
+        start_url: './?source=pwa',
+        scope: './',
+        prefer_related_applications: false,
+        categories: ['education', 'business', 'productivity'],
+        launch_handler: {
+          client_mode: ['navigate-existing', 'auto'],
+        },
+        handle_links: 'preferred',
+        icons: [
+          { src: 'pwa/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'pwa/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'pwa/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      devOptions: {
+        enabled: false,
+      },
+    }),
   )
 
   return {

@@ -19,19 +19,30 @@
 
 ```
 internal/
-├── server/     # 路由装配：router.go / router_admin.go / router_webapp.go
-├── admin/      # 管理端 HTTP
-├── webapp/     # 学员端 HTTP
-├── service/    # 用例（无 gin）
-├── repo/       # 数据访问
-├── model/      # 表实体
-├── http/       # middleware / bind / page / response
-├── menutree/   # 菜单树（跨层共享，避免循环依赖）
-└── platform/   # config / db / cache / applog
+├── server/          # router.go / router_admin.go / router_webapp.go
+├── admin/           # 管理端 HTTP
+├── webapp/          # 学员端 HTTP
+├── service/
+│   ├── admin/       # 管理端用例（banner、course、member…）
+│   ├── webapp/      # 学员端用例（auth、course、home…）
+│   ├── auth/        # 共享：JWT、限流、密码
+│   ├── captcha/
+│   ├── coin/
+│   ├── enroll/
+│   ├── catalog/
+│   ├── bunny/
+│   ├── menutree/    # 菜单树构建
+│   └── …            # 其它跨端能力
+├── repo/
+├── model/
+├── http/            # middleware / bind / page / response
+└── platform/        # config / db / cache / applog
 ```
 
 依赖方向只能向下：`handler → service → repo → model`。  
-`service` 不得 import `admin` / `webapp` / `gin`。
+`service` 不得 import `admin` / `webapp`（HTTP）/ `gin`。
+
+说明：`service/admin/*`、`service/webapp/*` 的 **package 名**仍保留历史名（如 `admincourse`、`webauth`），以免与 HTTP 层同名包冲突；**目录**按端划分即可。
 
 ## 路由
 
@@ -39,6 +50,8 @@ internal/
 - `/admin/*`：`AdminAuth`（管理员 JWT）
 - `/webapp/*`：`WebappAuth`（学员 JWT）
 
-## 渐进整改
+## 约定
 
-部分较老的 `service/admin*` 仍直接接收 `gin.Context`（历史遗留）。新代码与改动请按 `adminbanner` / `adminverse` / `adminfeedback` 的方式：service 返回数据或 `error`，由 handler 写响应。
+- Service 使用 `context.Context`，不依赖 `gin` / `http/response` / `middleware`
+- HTTP 绑定与写响应只在 `admin` / `webapp` handler
+- 分页等可复用 `http/page`；新代码优先在 handler 完成绑定后再传入 service

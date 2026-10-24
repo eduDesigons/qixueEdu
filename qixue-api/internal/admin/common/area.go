@@ -5,7 +5,7 @@ import (
 
 	"qixue-api/internal/http/middleware"
 	"qixue-api/internal/http/response"
-	"qixue-api/internal/service/admincommon"
+	"qixue-api/internal/service/admin/common"
 )
 
 type Handler struct{ svc *admincommon.Service }

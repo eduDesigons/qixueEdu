@@ -2,11 +2,20 @@
 	<div class="course-video-player course-video-content">
 		<div ref="host" class="course-video-host"></div>
 		<div v-if="showResumeBar" class="video-resume">上次看到 {{ resumeLabel }}</div>
+		<button
+			v-if="playSrc && (!playing || cacheBusy)"
+			type="button"
+			class="video-offline"
+			:disabled="cacheBusy"
+			:title="cacheHint || cacheLabel"
+			@click.stop="onCacheClick"
+		>{{ cacheLabel }}</button>
 	</div>
 </template>
 
 <script>
 import { getStorage, setStorage } from '@/common/storage'
+	import { cacheFullVideo, formatBytes, getVideoCacheStatus, offlinePlaybackSrc, removeCachedVideo } from '@/common/mediaCache'
 	import Player from 'xgplayer'
 	import 'xgplayer/dist/index.min.css'
 
@@ -31,7 +40,14 @@ import { getStorage, setStorage } from '@/common/storage'
 			return {
 				player: null,
 				showResumeBar: false,
-				resumeTimer: null
+				resumeTimer: null,
+				playing: false,
+				cacheBusy: false,
+				cacheState: 'idle',
+				cacheHint: '',
+				cacheAbort: null,
+				blobUrl: '',
+				mountGen: 0
 			}
 		},
 		computed: {
@@ -49,11 +65,17 @@ import { getStorage, setStorage } from '@/common/storage'
 			},
 			resumeLabel() {
 				return this.formatClock(this.initialTime)
+			},
+			cacheLabel() {
+				if (this.cacheBusy) return '缓存中'
+				if (this.cacheState === 'cached') return '已缓存'
+				return '离线'
 			}
 		},
 		watch: {
 			playSrc() {
 				this.mountPlayer()
+				this.refreshCacheStatus()
 			},
 			posterSrc() {
 				if (this.player && this.posterSrc) this.player.poster = this.posterSrc
@@ -61,8 +83,10 @@ import { getStorage, setStorage } from '@/common/storage'
 		},
 		mounted() {
 			this.mountPlayer()
+			this.refreshCacheStatus()
 		},
 		beforeUnmount() {
+			if (this.cacheAbort) this.cacheAbort.abort()
 			this.destroyPlayer()
 		},
 		methods: {
@@ -104,13 +128,38 @@ import { getStorage, setStorage } from '@/common/storage'
 					try { this.player.destroy() } catch (e) {}
 					this.player = null
 				}
+				if (this.blobUrl) {
+					URL.revokeObjectURL(this.blobUrl)
+					this.blobUrl = ''
+				}
 				const host = this.hostEl()
 				if (host) host.innerHTML = ''
 			},
+			async resolvePlaybackUrl(src) {
+				if (!src || navigator.onLine !== false) return src
+				try {
+					return (await offlinePlaybackSrc(src)) || src
+				} catch (e) {
+					return src
+				}
+			},
 			mountPlayer() {
+				const gen = ++this.mountGen
 				this.destroyPlayer()
 				const host = this.hostEl()
-				const url = this.playSrc
+				const src = this.playSrc
+				if (!host || !src) return
+				this.resolvePlaybackUrl(src).then((url) => {
+					if (gen !== this.mountGen || !url) {
+						if (url && String(url).startsWith('blob:')) URL.revokeObjectURL(url)
+						return
+					}
+					if (String(url).startsWith('blob:')) this.blobUrl = url
+					this.createPlayer(url)
+				})
+			},
+			createPlayer(url) {
+				const host = this.hostEl()
 				if (!host || !url) return
 				const start = Number(this.initialTime) || 0
 				const rate = this.allowSpeed ? this.savedRate() : 1
@@ -150,10 +199,29 @@ import { getStorage, setStorage } from '@/common/storage'
 				this.player = player
 				this.setupResumeBar(start)
 				player.on('play', () => {
+					this.playing = true
 					this.showResumeBar = false
+					if (this.cacheAbort) this.cacheAbort.abort()
 					this.$emit('play')
 				})
-				player.on('pause', () => this.$emit('pause'))
+				player.on('pause', () => {
+					this.playing = false
+					this.$emit('pause')
+				})
+				player.on('error', () => {
+					if (navigator.onLine !== false || this._offlineRetried || !this.playSrc) return
+					this._offlineRetried = true
+					offlinePlaybackSrc(this.playSrc).then((offline) => {
+						if (!offline) return
+						const time = player.currentTime || 0
+						this.destroyPlayer()
+						if (offline.startsWith('blob:')) this.blobUrl = offline
+						this.createPlayer(offline)
+						this.$nextTick(() => {
+							if (this.player && time > 1) this.player.currentTime = time
+						})
+					}).catch(() => {})
+				})
 				player.on('ended', () => this.$emit('ended'))
 				player.on('timeupdate', () => {
 					this.$emit('timeupdate', {
@@ -183,6 +251,63 @@ import { getStorage, setStorage } from '@/common/storage'
 				try {
 					if (this.player) this.player.currentTime = Number(seconds) || 0
 				} catch (e) {}
+			},
+			async refreshCacheStatus() {
+				this.cacheHint = ''
+				if (!this.playSrc) {
+					this.cacheState = 'idle'
+					return
+				}
+				try {
+					const status = await getVideoCacheStatus(this.playSrc)
+					this.cacheState = status.cached ? 'cached' : 'idle'
+					if (status.cached) this.cacheHint = formatBytes(status.bytes)
+				} catch (e) {
+					this.cacheState = 'idle'
+				}
+			},
+			async onCacheClick() {
+				if (this.cacheBusy || !this.playSrc) return
+				if (this.cacheState === 'cached') {
+					this.cacheBusy = true
+					try {
+						await removeCachedVideo(this.playSrc)
+						this.cacheState = 'idle'
+						this.cacheHint = '已清除本地视频'
+					} catch (e) {
+						this.cacheHint = e.message || '清除失败'
+					} finally {
+						this.cacheBusy = false
+					}
+					return
+				}
+				this.cacheBusy = true
+				this.cacheState = 'downloading'
+				this.cacheHint = '正在下载完整文件…'
+				const abort = new AbortController()
+				this.cacheAbort = abort
+				try {
+					const result = await cacheFullVideo(this.playSrc, {
+						title: this.title,
+						signal: abort.signal,
+						onProgress: ({ received, total }) => {
+							if (total > 0) this.cacheHint = `正在缓存 ${Math.min(100, Math.floor(received / total * 100))}%`
+							else this.cacheHint = `已下载 ${formatBytes(received)}`
+						}
+					})
+					this.cacheState = 'cached'
+					this.cacheHint = result.warning || `已缓存 ${formatBytes(result.bytes)}，可离线播放`
+				} catch (e) {
+					if (e && e.name === 'AbortError') {
+						this.cacheHint = '已取消缓存'
+					} else {
+						this.cacheHint = (e && e.message) || '缓存失败'
+					}
+					this.cacheState = 'idle'
+				} finally {
+					this.cacheBusy = false
+					this.cacheAbort = null
+				}
 			}
 		}
 	}
@@ -200,6 +325,23 @@ import { getStorage, setStorage } from '@/common/storage'
 	.course-video-host {
 		width: 100%;
 		height: 100%;
+	}
+
+	.video-offline {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		z-index: 20;
+		border-radius: 999px;
+		padding: 3px 8px;
+		background: rgba(17, 24, 39, 0.45);
+		color: rgba(255, 255, 255, 0.88);
+		font-size: 11px;
+		line-height: 1.4;
+	}
+
+	.video-offline:disabled {
+		opacity: 0.7;
 	}
 
 	.video-resume {

@@ -17,11 +17,11 @@
 分层：`handler → service → repo → model`。
 
 - **handler**（`internal/admin`、`internal/webapp`）：绑定参数、鉴权上下文、调用 service、写 JSON。不要写业务规则或直接 `Table(...)`。
-- **service**：业务与事务；入参用 `context.Context`，**不要**依赖 `gin.Context`。
+- **service**：业务与事务；入参用 `context.Context`，**不要**依赖 `gin.Context`。管理端放 `service/admin/`，学员端放 `service/webapp/`，跨端能力放 `service/` 根下。
 - **repo**：查询与持久化。
 - **model**：表结构与 `TableName`。
 
-参考已对齐的包：`service/adminbanner`、`service/adminverse`、`service/adminfeedback`。
+详见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
 ```bash
 cd qixue-api

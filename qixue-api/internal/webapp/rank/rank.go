@@ -5,7 +5,7 @@ import (
 
 	"qixue-api/internal/http/middleware"
 	"qixue-api/internal/http/response"
-	ranksvc "qixue-api/internal/service/rank"
+	ranksvc "qixue-api/internal/service/webapp/rank"
 )
 
 type Handler struct {

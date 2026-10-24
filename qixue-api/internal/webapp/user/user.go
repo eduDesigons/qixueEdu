@@ -9,7 +9,7 @@ import (
 	"qixue-api/internal/http/middleware"
 	"qixue-api/internal/http/page"
 	"qixue-api/internal/http/response"
-	usersvc "qixue-api/internal/service/user"
+	usersvc "qixue-api/internal/service/webapp/user"
 )
 
 type Handler struct {

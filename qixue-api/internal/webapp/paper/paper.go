@@ -8,7 +8,7 @@ import (
 	"qixue-api/internal/http/bind"
 	"qixue-api/internal/http/middleware"
 	"qixue-api/internal/http/response"
-	papersvc "qixue-api/internal/service/paper"
+	papersvc "qixue-api/internal/service/webapp/paper"
 )
 
 type Handler struct {

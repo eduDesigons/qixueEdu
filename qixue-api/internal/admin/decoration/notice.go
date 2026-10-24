@@ -8,7 +8,7 @@ import (
 	"qixue-api/internal/http/bind"
 	"qixue-api/internal/http/page"
 	"qixue-api/internal/http/response"
-	"qixue-api/internal/service/adminnotice"
+	"qixue-api/internal/service/admin/notice"
 )
 
 type Notice struct{ svc *adminnotice.Service }

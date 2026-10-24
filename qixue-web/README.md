@@ -19,6 +19,10 @@ npm run dev
 npm run build
 ```
 
+构建产物含 PWA（`manifest.webmanifest` + Service Worker）。线上需 **HTTPS**（或 localhost）才能安装到桌面；有新版本时底部会提示「立即更新」，未安装时会提醒「安装到桌面」。
+
+在线播放直接请求 CDN，Service Worker 不拦截 MP4。只有断网且已经缓存完整文件时，才改走本地播放。图片在线优先走网络，失败后再用缓存。
+
 ## 环境
 
 开发配置在 `.env.development`：

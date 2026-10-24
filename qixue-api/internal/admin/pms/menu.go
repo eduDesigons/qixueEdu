@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"qixue-api/internal/menutree"
+	"qixue-api/internal/service/menutree"
 	"qixue-api/internal/http/bind"
 	"qixue-api/internal/http/response"
 	"qixue-api/internal/model"

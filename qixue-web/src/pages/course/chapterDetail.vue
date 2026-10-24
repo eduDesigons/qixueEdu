@@ -1159,8 +1159,13 @@ import { navigateBack, navigateTo, setPageTitle } from '@/common/nav'
 						confirmText: '解锁',
 						success: (res) => {
 							if (!res.confirm) return;
+							const chapterId = Number(chapter && chapter.id)
+							if (!chapterId) {
+								this.msg('缺少章节参数');
+								return;
+							}
 							this.$http.post('/learn/unlockChapter', {
-								chapter_id: chapter.id
+								chapter_id: chapterId
 							}).then(() => {
 								this.msg('解锁成功');
 								chapter.un_lock = 1;

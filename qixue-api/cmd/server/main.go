@@ -14,7 +14,7 @@ import (
 	"qixue-api/internal/repo"
 	"qixue-api/internal/server"
 	"qixue-api/internal/service/captcha"
-	"qixue-api/internal/service/rank"
+	"qixue-api/internal/service/webapp/rank"
 )
 
 func main() {

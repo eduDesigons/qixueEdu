@@ -8,7 +8,7 @@ import (
 	"qixue-api/internal/http/bind"
 	"qixue-api/internal/http/middleware"
 	"qixue-api/internal/http/response"
-	"qixue-api/internal/service/adminfeedback"
+	"qixue-api/internal/service/admin/feedback"
 )
 
 type Feedback struct{ svc *adminfeedback.Service }

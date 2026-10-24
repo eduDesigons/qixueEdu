@@ -1,0 +1,98 @@
+/* 安装为 PWA / 独立窗口时的 App 壳：隐藏浏览器栏后的安全区与交互 */
+
+html.qx-pwa-standalone {
+  --status-bar-height: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  /* 独立窗口用动态视口，避免地址栏显隐造成的高度跳动（已安装时无地址栏，仍更稳） */
+  min-height: 100dvh;
+  background: #f8f8f8;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.qx-pwa-standalone,
+html.qx-pwa-standalone body {
+  /* 禁止橡皮筋把系统区「拽出」浏览器感 */
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+}
+
+html.qx-pwa-standalone body {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  /* 左右安全区（横屏刘海） */
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+/* 宽屏独立窗口：去掉手机窄栏居中，铺满应用窗 */
+html.qx-pwa-standalone.is-desktop body {
+  max-width: none;
+}
+
+html.qx-pwa-standalone #app {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+/* 顶栏伸入状态栏区域，内容仍落在安全区内 */
+html.qx-pwa-standalone uni-page-head {
+  height: calc(44px + var(--status-bar-height));
+  padding-top: var(--status-bar-height);
+  box-sizing: border-box;
+}
+
+html.qx-pwa-standalone .qx-page.has-nav {
+  padding-top: calc(44px + var(--status-bar-height));
+  --window-top: calc(44px + var(--status-bar-height));
+}
+
+html.qx-pwa-standalone .qx-page {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+/* 各页自定义顶栏 / 占位 */
+html.qx-pwa-standalone .NativeTopBar_shim_2poDt,
+html.qx-pwa-standalone .nav-bar-shim,
+html.qx-pwa-standalone .HeaderWap_header_3Lxv8,
+html.qx-pwa-standalone .van-nav-bar--fixed,
+html.qx-pwa-standalone .custom-navbar {
+  padding-top: var(--status-bar-height);
+  box-sizing: border-box;
+}
+
+html.qx-pwa-standalone .NativeTopBar_placelholder_1riAA,
+html.qx-pwa-standalone .NativeTopBar_shim_2poDt,
+html.qx-pwa-standalone .nav-bar-placeholder,
+html.qx-pwa-standalone .nav-bar-shim {
+  height: calc(44px + var(--status-bar-height)) !important;
+}
+
+html.qx-pwa-standalone .van-nav-bar--fixed {
+  height: calc(46px + var(--status-bar-height));
+}
+
+/* 桌面 PWA：窗口控件叠层时顶栏充当可拖拽标题栏 */
+@media (display-mode: window-controls-overlay) {
+  html.qx-pwa-standalone .qx-desktop-header {
+    position: sticky;
+    top: 0;
+    height: max(64px, env(titlebar-area-height, 64px));
+    margin-left: env(titlebar-area-x, 0px);
+    width: env(titlebar-area-width, 100%);
+    box-sizing: border-box;
+    -webkit-app-region: drag;
+    app-region: drag;
+  }
+
+  html.qx-pwa-standalone .qx-desktop-header button,
+  html.qx-pwa-standalone .qx-desktop-header a,
+  html.qx-pwa-standalone .qx-desktop-header input,
+  html.qx-pwa-standalone .qx-desktop-header form {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+}

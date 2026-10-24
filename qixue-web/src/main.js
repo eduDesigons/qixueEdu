@@ -1,6 +1,7 @@
 import { getStorage } from '@/common/storage'
 import { createApp } from 'vue'
 import { bindRouter } from '@/common/nav'
+import { applyAppShell, setupPwa } from '@/common/pwa'
 import { installApp } from './install'
 import { applyFontScale } from './common/fontScale'
 import { http } from './common/request'
@@ -13,9 +14,12 @@ import config from './config'
 import './styles/base.css'
 import './styles/global.scss'
 import './styles/desktop.css'
+import './styles/app-shell.css'
 
 applyFontScale()
 bindRouter(router)
+applyAppShell()
+setupPwa()
 
 const savedToken = getStorage('token')
 if (savedToken) {

@@ -8,15 +8,17 @@
 
 ```
 internal/
-├── model/      # GORM entities
-├── repo/       # data access
-├── service/    # use-cases（勿依赖 gin）
-├── admin/      # 管理端 HTTP → service
-├── webapp/     # 学员端 HTTP → service
-├── menutree/   # 菜单树（跨层共享）
-├── http/       # middleware / bind / page / response
-├── platform/   # config / db / cache / applog
-└── server/     # router.go + router_admin.go + router_webapp.go
+├── model/
+├── repo/
+├── service/
+│   ├── admin/    # 管理端用例
+│   ├── webapp/   # 学员端用例
+│   └── …         # 共享：auth / captcha / coin / enroll …
+├── admin/        # 管理端 HTTP → service/admin
+├── webapp/       # 学员端 HTTP → service/webapp
+├── http/
+├── platform/
+└── server/       # router.go + router_admin.go + router_webapp.go
 ```
 
 | Layer | May | Must not |

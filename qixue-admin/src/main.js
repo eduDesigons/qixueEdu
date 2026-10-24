@@ -17,10 +17,12 @@ import { setupDirectives } from './directives'
 import { setupRouter } from './router'
 import { setupStore } from './store'
 import { getAssetUrl, setupNaiveDiscreteApi } from './utils'
+import { applyAppShell, setupPwa } from './utils/pwa'
 import { setupLightField } from './utils/lightField'
 import { applyPrimaryTheme } from './utils/theme'
 import '@/styles/reset.css'
 import '@/styles/global.css'
+import '@/styles/app-shell.css'
 import 'uno.css'
 
 async function bootstrap() {
@@ -33,6 +35,9 @@ async function bootstrap() {
   catch {}
 
   applyPrimaryTheme()
+  // 尽早打独立窗口标记，避免首帧仍按「浏览器页」排版
+  applyAppShell()
+  setupPwa()
 
   const app = createApp(App)
   app.config.globalProperties.$assetUrl = getAssetUrl

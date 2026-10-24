@@ -9,7 +9,7 @@ import (
 	"qixue-api/internal/http/middleware"
 	"qixue-api/internal/http/page"
 	"qixue-api/internal/http/response"
-	learnsvc "qixue-api/internal/service/learn"
+	learnsvc "qixue-api/internal/service/webapp/learn"
 )
 
 type Handler struct {
@@ -39,6 +39,7 @@ func (h *Handler) writeSvcErr(c *gin.Context, err error) bool {
 		errors.Is(err, learnsvc.ErrApplyNoChapters),
 		errors.Is(err, learnsvc.ErrAlreadyApplied),
 		errors.Is(err, learnsvc.ErrChapterNotFound),
+		errors.Is(err, learnsvc.ErrNeedJoinCourse),
 		errors.Is(err, learnsvc.ErrAlreadyEnded),
 		errors.Is(err, learnsvc.ErrAlreadyUnlocked),
 		errors.Is(err, learnsvc.ErrNeedPrevChapter),
@@ -168,6 +169,10 @@ func (h *Handler) UnlockChapter(c *gin.Context) {
 	chapterID := body.ChapterID.Int()
 	if chapterID <= 0 {
 		chapterID = bind.Query(c, "chapter_id")
+	}
+	if chapterID <= 0 {
+		response.Fail(c, 1, "缺少章节参数")
+		return
 	}
 	if h.writeSvcErr(c, h.svc.UnlockChapter(c.Request.Context(), middleware.UID(c), chapterID)) {
 		return

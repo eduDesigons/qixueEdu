@@ -13,7 +13,7 @@ import (
 	"qixue-api/internal/http/middleware"
 	"qixue-api/internal/http/response"
 	"qixue-api/internal/platform/cache"
-	"qixue-api/internal/service/adminlogin"
+	"qixue-api/internal/service/admin/login"
 )
 
 type Handler struct {

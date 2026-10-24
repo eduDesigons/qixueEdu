@@ -8,7 +8,7 @@ import (
 
 	"qixue-api/internal/http/bind"
 	"qixue-api/internal/http/response"
-	"qixue-api/internal/service/adminbanner"
+	"qixue-api/internal/service/admin/banner"
 )
 
 type Banner struct{ svc *adminbanner.Service }

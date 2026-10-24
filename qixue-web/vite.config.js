@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { VitePWA } from 'vite-plugin-pwa'
 import { NodeTypes } from '@vue/compiler-core'
 import { fileURLToPath, URL } from 'node:url'
 
@@ -35,6 +36,47 @@ export default defineConfig(({ mode }) => {
           isCustomElement: (tag) => tag === 'uni-page-head' || tag === 'uni-tabbar',
           nodeTransforms: [markClickable],
         },
+      },
+    }),
+    VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
+      registerType: 'prompt',
+      includeAssets: ['favicon.png', 'pwa/*.png'],
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,woff,ttf}'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+      },
+      manifest: {
+        id: '/',
+        name: '启学',
+        short_name: '启学',
+        description: '启学学员端：课程学习、作业与证书',
+        theme_color: '#4286F5',
+        background_color: '#f8f8f8',
+        display: 'standalone',
+        // 优先独立窗口（无浏览器地址栏/工具栏），桌面 Chromium 可叠层窗口控件
+        display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],
+        orientation: 'any',
+        lang: 'zh-CN',
+        dir: 'ltr',
+        start_url: '/?source=pwa',
+        scope: '/',
+        prefer_related_applications: false,
+        categories: ['education', 'productivity'],
+        launch_handler: {
+          client_mode: ['navigate-existing', 'auto'],
+        },
+        handle_links: 'preferred',
+        icons: [
+          { src: 'pwa/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'pwa/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'pwa/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      devOptions: {
+        enabled: false,
       },
     }),
   ],

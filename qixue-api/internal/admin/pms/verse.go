@@ -7,7 +7,7 @@ import (
 
 	"qixue-api/internal/http/page"
 	"qixue-api/internal/http/response"
-	"qixue-api/internal/service/adminverse"
+	"qixue-api/internal/service/admin/verse"
 )
 
 type Verse struct{ svc *adminverse.Service }

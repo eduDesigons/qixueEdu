@@ -9,7 +9,7 @@ import (
 	"qixue-api/internal/http/middleware"
 	"qixue-api/internal/http/page"
 	"qixue-api/internal/http/response"
-	pathsvc "qixue-api/internal/service/path"
+	pathsvc "qixue-api/internal/service/webapp/path"
 )
 
 type Handler struct {

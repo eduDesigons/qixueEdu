@@ -21,6 +21,8 @@ npm run dev
 npm run build
 ```
 
+构建产物含 PWA（`manifest.webmanifest` + Service Worker）。线上需 **HTTPS**（或 localhost）才能安装到桌面；有新版本时底部会提示「立即更新」，未安装时会提醒「安装到桌面」。管理端不做视频离线缓存，视频始终直连 CDN。
+
 ## 环境
 
 开发配置在 `.env.development`：

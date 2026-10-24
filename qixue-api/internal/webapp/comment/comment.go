@@ -8,7 +8,7 @@ import (
 	"qixue-api/internal/http/bind"
 	"qixue-api/internal/http/middleware"
 	"qixue-api/internal/http/response"
-	commentsvc "qixue-api/internal/service/comment"
+	commentsvc "qixue-api/internal/service/webapp/comment"
 )
 
 type Handler struct {

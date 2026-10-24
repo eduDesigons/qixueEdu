@@ -1,0 +1,61 @@
+/* 管理端 PWA 独立窗口：无浏览器地址栏 / 标签栏时的 App 壳 */
+
+html.qx-pwa-standalone {
+  --status-bar-height: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.qx-pwa-standalone,
+html.qx-pwa-standalone body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+html.qx-pwa-standalone body,
+html.qx-pwa-standalone #app {
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+/* 移动端 / 平板独立窗口：顶栏吃进系统状态栏 */
+html.qx-pwa-standalone .layout-shell {
+  padding-top: var(--status-bar-height);
+}
+
+/* 桌面 Chromium PWA：窗口控件叠层，顶栏充当可拖拽标题栏 */
+@media (display-mode: window-controls-overlay) {
+  html.qx-pwa-standalone {
+    --bar-h: max(52px, env(titlebar-area-height, 52px));
+  }
+
+  html.qx-pwa-standalone .layout-shell {
+    padding-top: 0;
+  }
+
+  html.qx-pwa-standalone .layout-header.header-bar,
+  html.qx-pwa-standalone .header-bar-h {
+    position: relative;
+    height: var(--bar-h) !important;
+    max-height: var(--bar-h) !important;
+    min-height: var(--bar-h) !important;
+    margin-left: env(titlebar-area-x, 0px);
+    width: env(titlebar-area-width, 100%);
+    box-sizing: border-box;
+    -webkit-app-region: drag;
+    app-region: drag;
+  }
+
+  html.qx-pwa-standalone .layout-header button,
+  html.qx-pwa-standalone .layout-header a,
+  html.qx-pwa-standalone .layout-header input,
+  html.qx-pwa-standalone .layout-header .n-button,
+  html.qx-pwa-standalone .layout-header .n-base-selection,
+  html.qx-pwa-standalone .layout-header [role='button'] {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+}

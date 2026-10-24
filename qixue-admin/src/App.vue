@@ -28,6 +28,7 @@
             </component>
           </router-view>
           <AppImagePreview />
+          <PwaPrompt />
         </NNotificationProvider>
       </NDialogProvider>
     </NMessageProvider>
@@ -36,7 +37,7 @@
 
 <script setup>
 import { dateZhCN, NDialogProvider, NMessageProvider, NNotificationProvider, zhCN } from 'naive-ui'
-import { AppImagePreview } from '@/components'
+import { AppImagePreview, PwaPrompt } from '@/components'
 import { naiveThemeOverrides } from '@/settings'
 import { useTabStore } from '@/store'
 import { PAGE_CACHE_MAX, pruneExpiredListStateCache } from '@/utils/pageCache'

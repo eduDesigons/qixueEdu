@@ -7,7 +7,7 @@ import (
 
 	"qixue-api/internal/http/bind"
 	"qixue-api/internal/http/response"
-	"qixue-api/internal/service/webauth"
+	"qixue-api/internal/service/webapp/auth"
 )
 
 type Handler struct {

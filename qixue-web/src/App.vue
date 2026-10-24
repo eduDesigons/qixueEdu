@@ -35,6 +35,7 @@
     </uni-tabbar>
     </div>
   </div>
+  <PwaPrompt />
 </template>
 
 <script>
@@ -42,6 +43,7 @@ import { getStorage } from '@/common/storage'
 import { navState, navigateBack, reLaunch, switchTab } from '@/common/nav'
 import { defineAsyncComponent } from 'vue'
 import { mapState } from 'vuex'
+import PwaPrompt from './components/PwaPrompt.vue'
 import { tabNames } from './router'
 import { isDesktop as desktopOn, bindDesktop } from './pc/desktop'
 
@@ -56,6 +58,7 @@ export default {
   components: {
     DesktopHeader: defineAsyncComponent(() => import('./pc/DesktopHeader.vue')),
     MeShell: defineAsyncComponent(() => import('./pc/MeShell.vue')),
+    PwaPrompt,
   },
   data() {
     return { tabNames, tabs }

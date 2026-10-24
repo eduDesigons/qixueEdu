@@ -651,8 +651,13 @@ import { setPageTitle } from '@/common/nav'
 				});
 			},
 			doUnlockChapter(chapter, enter) {
+				const chapterId = Number(chapter && chapter.id)
+				if (!chapterId) {
+					this.msg('缺少章节参数');
+					return;
+				}
 				this.$http.post('/learn/unlockChapter', {
-					chapter_id: chapter.id
+					chapter_id: chapterId
 				}).then(() => {
 					chapter.un_lock = 1;
 					this.msg('解锁成功');
