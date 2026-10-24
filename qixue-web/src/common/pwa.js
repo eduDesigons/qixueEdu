@@ -78,6 +78,14 @@ export function applyAppShell() {
   if (on && !meta.dataset.qxAppShell) {
     meta.dataset.qxAppShell = meta.getAttribute('content') || ''
   }
+  // 独立窗口：状态栏透明（与 apple black-translucent + viewport-fit=cover 配合）
+  if (on) {
+    document.querySelectorAll('meta[name="theme-color"]').forEach((el) => {
+      el.setAttribute('content', 'transparent')
+    })
+  } else if (meta.dataset.qxAppShell) {
+    meta.setAttribute('content', meta.dataset.qxAppShell || '#4286F5')
+  }
 }
 
 function isIosSafari() {

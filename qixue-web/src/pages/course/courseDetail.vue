@@ -118,7 +118,7 @@
 				<div v-if="isDesktop" class="pc-course-tabs">
 					<div :class="{ on: activeTab !== 2 && activeTab !== 3 }" @click="activeTab = 0">简介</div>
 					<div :class="{ on: activeTab === 2 }" @click="activeTab = 2">课件</div>
-					<div :class="{ on: activeTab === 3 }" @click="switchTab({ index: 3 })">评论（{{ commentTotal }}）</div>
+					<div :class="{ on: activeTab === 3 }" @click="switchTab({ index: 3 })">评论<span v-if="commentTotal">（{{ commentTotal }}）</span></div>
 				</div>
 				<!-- 简介内容 -->
 				<div class="intro-content" v-if="isDesktop ? activeTab !== 2 && activeTab !== 3 : activeTab === 0">
@@ -237,6 +237,13 @@
 							<van-loading type="circular" />
 							<span>加载中...</span>
 						</div>
+						<div
+							class="comment-load-more"
+							v-else-if="commentHasMore && commentList.length > 0"
+							@click="loadMoreComments"
+						>
+							<span>加载更多评论</span>
+						</div>
 						<div class="comment-no-more" v-if="commentHasMore === false && commentList.length > 0">
 							<span>没有更多了</span>
 						</div>
@@ -332,9 +339,10 @@ import { setPageTitle } from '@/common/nav'
 				showCommentPopup: false, // 是否显示评论输入弹窗
 				desktopComment: '',
 				commentPage: 1, // 评论列表页码
-				commentLimit: 10, // 每页数量
+				commentLimit: 50, // 每页数量（旧评论在倒序列表后面，过小会误以为丢失）
 				commentHasMore: true, // 是否还有更多评论
 				commentLoading: false, // 评论加载状态
+				commentReqId: 0,
 				replyCommentId: null, // 当前回复的评论ID
 				replyUserId: null, // 当前回复的用户ID
 				replyUserName: null, // 当前回复的用户名
@@ -385,11 +393,12 @@ import { setPageTitle } from '@/common/nav'
 				return num + ' | ' + (ch.title || '');
 			},
 			courseTabs() {
+				const n = Number(this.commentTotal) || 0
 				return [
 					{ name: '简介' },
 					{ name: '目录' },
 					{ name: '课件' },
-					{ name: '评论（' + (Number(this.commentTotal) || 0) + '）' },
+					{ name: n > 0 ? `评论（${n}）` : '评论' },
 				]
 			}
 		},
@@ -492,7 +501,8 @@ import { setPageTitle } from '@/common/nav'
 				} else {
 					this.refreshChapters();
 				}
-				if (!this.commentList.length) {
+				this.fetchCommentTotal();
+				if (this.activeTab === 3 && !this.commentList.length) {
 					this.getCommentList(true);
 				}
 			},
@@ -596,11 +606,15 @@ import { setPageTitle } from '@/common/nav'
 			},
 			switchTab(e) {
 				const index = typeof e === 'object' && e !== null ? e.index : e;
-				this.activeTab = Number(index);
+				const tab = Number(index);
+				if (Number.isNaN(tab)) return;
+				const changed = this.activeTab !== tab;
+				this.activeTab = tab;
 				if (this.activeTab === 1) {
 					this.scrollToContinueChapter();
 				}
-				if (this.activeTab === 3) {
+				// 仅首次进入或列表为空时重拉，避免 tabs 抖动把旧评论分页冲掉
+				if (this.activeTab === 3 && (changed || !this.commentList.length)) {
 					this.getCommentList(true);
 				}
 			},
@@ -837,38 +851,71 @@ import { setPageTitle } from '@/common/nav'
 					this.msg(err.message || '发布失败');
 				});
 			},
+			// 仅拉评论总数，进详情就展示在 Tab 上
+			fetchCommentTotal() {
+				if (!this.courseId) return;
+				const courseId = this.courseId;
+				this.$http.post('/comment/getCourseCommentList', {
+					course_id: Number(courseId) || courseId,
+					page: 1,
+					limit: 1
+				}).then(res => {
+					if (String(courseId) !== String(this.courseId)) return;
+					const total = res && res.data && res.data.total;
+					if (typeof total === 'number') {
+						this.commentTotal = total;
+					}
+				}).catch(() => {});
+			},
 			// 获取评论列表
 			getCommentList(reset = true) {
 				if (!this.courseId) return;
-				if (reset) {
+				const isReset = !!reset;
+				if (isReset) {
 					this.commentPage = 1;
 					this.commentList = [];
 					this.commentHasMore = true;
+					this.commentLoading = false;
+					this.commentReqId += 1;
 				}
 				if (this.commentLoading || !this.commentHasMore) return;
 
+				const reqId = this.commentReqId;
+				const courseId = this.courseId;
+				const pageNum = this.commentPage;
+				const append = !isReset;
 				this.commentLoading = true;
 				this.$http.post('/comment/getCourseCommentList', {
-					course_id: this.courseId,
-					page: this.commentPage,
+					course_id: Number(courseId) || courseId,
+					page: pageNum,
 					limit: this.commentLimit
 				}).then(res => {
+					if (reqId !== this.commentReqId || String(courseId) !== String(this.courseId)) return;
 					this.commentLoading = false;
-					const list = res.data.list || [];
-					this.commentList = this.commentList.concat(list);
-					this.commentHasMore = res.data.hasMore;
-					if (typeof res.data.total === 'number') {
-						this.commentTotal = res.data.total;
+					const payload = (res && res.data) || {};
+					const list = Array.isArray(payload.list) ? payload.list : [];
+					this.commentList = append ? this.commentList.concat(list) : list.slice();
+					const hasMore = payload.hasMore === true || payload.hasMore === 1 || payload.hasMore === 'true';
+					this.commentHasMore = hasMore && list.length > 0;
+					if (typeof payload.total === 'number') {
+						this.commentTotal = payload.total;
+					}
+					// 同一次浏览会话内自动续页（reqId 不变），旧评论不会丢在后面页
+					if (this.commentHasMore && this.commentList.length < 500) {
+						this.$nextTick(() => this.loadMoreComments());
 					}
 				}).catch(err => {
+					if (reqId !== this.commentReqId) return;
 					this.commentLoading = false;
+					if (!append) this.commentList = [];
 					console.log(err);
-					this.msg('加载评论失败');
-				})
+					this.msg((err && (err.message || err.msg)) || '加载评论失败');
+				});
 			},
 			// 加载更多评论
 			loadMoreComments() {
-				this.commentPage++;
+				if (this.commentLoading || !this.commentHasMore) return;
+				this.commentPage += 1;
 				this.getCommentList(false);
 			},
 			// 回复评论
@@ -1840,6 +1887,14 @@ import { setPageTitle } from '@/common/nav'
 		padding: calc(40 * var(--rpx)) 0;
 		font-size: calc(calc(26 * var(--rpx)) * var(--font-scale, 1));
 		color: #7f848c;
+	}
+
+	.comment-load-more {
+		text-align: center;
+		padding: calc(28 * var(--rpx)) 0 calc(40 * var(--rpx));
+		font-size: calc(calc(26 * var(--rpx)) * var(--font-scale, 1));
+		color: #4285f4;
+		cursor: pointer;
 	}
 
 	.comment-no-more {

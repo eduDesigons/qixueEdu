@@ -185,26 +185,19 @@ export default {
 				page: page.num,
 				limit: page.size
 			}).then(res => {
-				if (res.code === 200) {
-					let list = res.data.list || []
-					
-					// 设置列表数据
-					if (page.num === 1) {
-						this.courseCommentList = [];
-					}
-					this.courseCommentList = this.courseCommentList.concat(list);
-					
-					// 结束加载
-					this.mescroll.endSuccess(list.length, list.length >= page.size);
-				} else {
-					this.msg(res.msg || '获取课程评论失败');
-					this.mescroll.endErr();
+				const payload = (res && res.data) || {}
+				const list = Array.isArray(payload.list) ? payload.list : []
+				if (page.num === 1) {
+					this.courseCommentList = []
 				}
+				this.courseCommentList = this.courseCommentList.concat(list)
+				const hasMore = payload.hasMore === true || list.length >= page.size
+				this.mescroll.endSuccess(list.length, hasMore)
 			}).catch(err => {
-				console.log('获取课程评论失败:', err);
-				this.msg('获取课程评论失败');
-				this.mescroll.endErr();
-			});
+				console.log('获取课程评论失败:', err)
+				this.msg((err && (err.message || err.msg)) || '获取课程评论失败')
+				this.mescroll.endErr()
+			})
 		},
 		// 获取章节评论列表
 		getChapterCommentList(page) {
@@ -212,26 +205,19 @@ export default {
 				page: page.num,
 				limit: page.size
 			}).then(res => {
-				if (res.code === 200) {
-					let list = res.data.list || []
-					
-					// 设置列表数据
-					if (page.num === 1) {
-						this.chapterCommentList = [];
-					}
-					this.chapterCommentList = this.chapterCommentList.concat(list);
-					
-					// 结束加载
-					this.mescroll.endSuccess(list.length, list.length >= page.size);
-				} else {
-					this.msg(res.msg || '获取章节评论失败');
-					this.mescroll.endErr();
+				const payload = (res && res.data) || {}
+				const list = Array.isArray(payload.list) ? payload.list : []
+				if (page.num === 1) {
+					this.chapterCommentList = []
 				}
+				this.chapterCommentList = this.chapterCommentList.concat(list)
+				const hasMore = payload.hasMore === true || list.length >= page.size
+				this.mescroll.endSuccess(list.length, hasMore)
 			}).catch(err => {
-				console.log('获取章节评论失败:', err);
-				this.msg('获取章节评论失败');
-				this.mescroll.endErr();
-			});
+				console.log('获取章节评论失败:', err)
+				this.msg((err && (err.message || err.msg)) || '获取章节评论失败')
+				this.mescroll.endErr()
+			})
 		},
 		// 跳转课程详情
 		replyToName(reply, root) {

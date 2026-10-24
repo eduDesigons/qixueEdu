@@ -216,6 +216,13 @@
 						<van-loading type="circular" />
 						<span>加载中...</span>
 					</div>
+					<div
+						class="comment-load-more"
+						v-else-if="commentHasMore && commentList.length > 0"
+						@click="loadMoreComments"
+					>
+						<span>加载更多评论</span>
+					</div>
 					<div class="comment-no-more" v-if="commentHasMore === false && commentList.length > 0">
 						<span>没有更多了</span>
 					</div>
@@ -261,7 +268,7 @@
 <script>
 import { getStorage, removeStorage, setStorage } from '@/common/storage'
 import { createAudioContext, createSelectorQuery, pageScrollTo, showModal } from '@/common/dom'
-import { navigateBack, navigateTo, setPageTitle } from '@/common/nav'
+import { navigateTo, setPageTitle } from '@/common/nav'
 	import { isDesktop as desktopOn } from '@/pc/desktop'
 	import CommentInputPopup from './components/commentInputPopup.vue'
 	import CommentDock from './components/CommentDock.vue'
@@ -301,7 +308,7 @@ import { navigateBack, navigateTo, setPageTitle } from '@/common/nav'
 				videoProgressTimer: null, // 视频播放进度更新定时器
 				videoInitialTime: 0, // 视频初始播放位置（从进度恢复）
 				commentPage: 1, // 评论列表页码
-				commentLimit: 10, // 每页数量
+				commentLimit: 50, // 每页数量
 				commentHasMore: true, // 是否还有更多评论
 				commentLoading: false, // 评论加载状态
 				replyCommentId: null, // 当前回复的评论ID
@@ -1090,7 +1097,8 @@ import { navigateBack, navigateTo, setPageTitle } from '@/common/nav'
 			// 获取评论列表
 			getCommentList(reset = true) {
 				if (!this.chapterId) return;
-				if (reset) {
+				const isReset = !!reset;
+				if (isReset) {
 					this.commentPage = 1;
 					this.commentList = [];
 					this.commentHasMore = true;
@@ -1099,32 +1107,43 @@ import { navigateBack, navigateTo, setPageTitle } from '@/common/nav'
 				}
 				if (this.commentLoading || !this.commentHasMore) return;
 
-				this.commentLoading = true;
 				const reqId = ++this.commentReqId;
 				const reqChapterId = this.chapterId;
+				const pageNum = this.commentPage;
+				this.commentLoading = true;
 				this.$http.post('/comment/getChapterCommentList', {
-					chapter_id: reqChapterId,
-					course_id: this.courseId,
-					page: this.commentPage,
+					chapter_id: Number(reqChapterId) || reqChapterId,
+					course_id: Number(this.courseId) || this.courseId,
+					page: pageNum,
 					limit: this.commentLimit
 				}).then(res => {
-					if (reqId !== this.commentReqId) return;
+					if (reqId !== this.commentReqId || String(reqChapterId) !== String(this.chapterId)) return;
 					this.commentLoading = false;
-					this.commentList = [...this.commentList, ...res.data.list];
-					this.commentHasMore = res.data.hasMore;
-					if (typeof res.data.total === 'number') {
-						this.commentTotal = res.data.total;
+					const payload = (res && res.data) || {};
+					const list = Array.isArray(payload.list) ? payload.list : [];
+					this.commentList = isReset ? list.slice() : this.commentList.concat(list);
+					const hasMore = payload.hasMore === true || payload.hasMore === 1 || payload.hasMore === 'true';
+					this.commentHasMore = hasMore && list.length > 0;
+					if (typeof payload.total === 'number') {
+						this.commentTotal = payload.total;
+					}
+					if (this.commentHasMore && this.commentList.length < 500) {
+						this.$nextTick(() => {
+							if (reqId === this.commentReqId) this.loadMoreComments();
+						});
 					}
 				}).catch(err => {
 					if (reqId !== this.commentReqId) return;
 					this.commentLoading = false;
+					if (isReset) this.commentList = [];
 					console.log(err);
-					this.msg('加载评论失败');
+					this.msg((err && (err.message || err.msg)) || '加载评论失败');
 				});
 			},
 			// 加载更多评论
 			loadMoreComments() {
-				this.commentPage++;
+				if (this.commentLoading || !this.commentHasMore) return;
+				this.commentPage += 1;
 				this.getCommentList(false);
 			},
 			// 回复评论
@@ -1215,15 +1234,14 @@ import { navigateBack, navigateTo, setPageTitle } from '@/common/nav'
 			},
 			// 跳转到课程
 			goToCourse() {
-				if (!this.courseId) return;
-				const pages = getCurrentPages();
-				const prev = pages.length > 1 ? pages[pages.length - 2] : null;
-				const route = (prev && prev.route) || '';
-				if (route.indexOf('pages/course/courseDetail') !== -1) {
-					navigateBack();
+				const courseId = this.courseId
+					|| (this.info && (this.info.course_id || (this.info.course && this.info.course.id)));
+				if (!courseId) {
+					this.msg('课程信息缺失');
 					return;
 				}
-				this.navTo(`/pages/course/courseDetail?id=${this.courseId}&tab=1`);
+				this.courseId = courseId;
+				this.navTo(`/pages/course/courseDetail?id=${courseId}&tab=1`);
 			},
 			// 显示时长（秒转 mm:ss）
 			showDuration(seconds) {
@@ -1933,6 +1951,14 @@ import { navigateBack, navigateTo, setPageTitle } from '@/common/nav'
 		padding: calc(40 * var(--rpx)) 0;
 		font-size: calc(calc(26 * var(--rpx)) * var(--font-scale, 1));
 		color: #7f848c;
+	}
+
+	.comment-load-more {
+		text-align: center;
+		padding: calc(28 * var(--rpx)) 0 calc(40 * var(--rpx));
+		font-size: calc(calc(26 * var(--rpx)) * var(--font-scale, 1));
+		color: #4285f4;
+		cursor: pointer;
 	}
 
 	.comment-no-more {

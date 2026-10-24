@@ -42,7 +42,27 @@ func (s *Service) decorateComments(ctx context.Context, table string, rows []rep
 	}
 	users := map[int]map[string]any{}
 	for _, r := range userRows {
-		users[asInt(r["id"])] = r
+		id := asInt(r["id"])
+		if id <= 0 {
+			continue
+		}
+		nick := ""
+		switch v := r["nick_name"].(type) {
+		case string:
+			nick = v
+		case []byte:
+			nick = string(v)
+		}
+		avatar := ""
+		switch v := r["avatar"].(type) {
+		case string:
+			avatar = v
+		case []byte:
+			avatar = string(v)
+		}
+		users[id] = map[string]any{
+			"id": id, "nick_name": nick, "avatar": avatar, "coins": asInt(r["coins"]),
+		}
 	}
 	courseRows, err := s.learner.ListCourseBriefs(ctx, keys(courseIDs))
 	if err != nil {
@@ -118,7 +138,7 @@ func userBrief(users map[int]map[string]any, uid int) map[string]any {
 	if u, ok := users[uid]; ok {
 		return u
 	}
-	return map[string]any{"id": uid, "nick_name": nil, "avatar": "", "coins": 0}
+	return map[string]any{"id": uid, "nick_name": "", "avatar": "", "coins": 0}
 }
 
 func asInt(v any) int { return bind.AsInt(v) }
@@ -155,6 +175,12 @@ func formatTimes(rows []map[string]any) {
 				row[key] = v.Format("2006-01-02 15:04:05")
 			case *time.Time:
 				row[key] = model.FormatTime(v)
+			case []byte:
+				if len(v) > 0 {
+					row[key] = string(v)
+				}
+			case string:
+				// already formatted
 			}
 		}
 	}

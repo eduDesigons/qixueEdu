@@ -37,7 +37,7 @@ func (r *commentRepo) CountRoot(ctx context.Context, table string, withChapter b
 }
 
 func (r *commentRepo) ListRoot(ctx context.Context, table string, withChapter bool, targetID, page, limit int) ([]CommentRow, error) {
-	q := r.db.WithContext(ctx).Table(table).Where("pid = 0 AND deleted_at IS NULL")
+	q := commentSelect(r.db.WithContext(ctx).Table(table), table).Where("pid = 0 AND deleted_at IS NULL")
 	if withChapter {
 		q = q.Where("chapter_id = ?", targetID)
 	} else {
@@ -53,7 +53,7 @@ func (r *commentRepo) ListChildren(ctx context.Context, table string, pids []int
 		return nil, nil
 	}
 	var rows []CommentRow
-	err := r.db.WithContext(ctx).Table(table).
+	err := commentSelect(r.db.WithContext(ctx).Table(table), table).
 		Where("pid IN ? AND deleted_at IS NULL", pids).
 		Order("id DESC").Find(&rows).Error
 	return rows, err
@@ -81,15 +81,34 @@ func (r *commentRepo) CreateCourseComment(ctx context.Context, row *CommentRow) 
 		row.CreatedAt = &now
 		row.UpdatedAt = &now
 	}
-	return r.db.WithContext(ctx).Table("course_comments").Create(row).Error
+	// course_comments 无 chapter_id 列
+	return r.db.WithContext(ctx).Table("course_comments").
+		Omit("chapter_id").
+		Create(row).Error
+}
+
+type UserBriefRow struct {
+	ID       int    `gorm:"column:id"`
+	NickName string `gorm:"column:nick_name"`
+	Avatar   string `gorm:"column:avatar"`
+	Coins    int    `gorm:"column:coins"`
 }
 
 func (r *commentRepo) ListUserBriefs(ctx context.Context, ids []int) ([]map[string]any, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	var rows []map[string]any
+	var rows []UserBriefRow
 	err := r.db.WithContext(ctx).Table("users").
 		Select("id, nick_name, avatar, coins").Where("id IN ?", ids).Find(&rows).Error
-	return rows, err
+	if err != nil {
+		return nil, err
+	}
+	out := make([]map[string]any, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, map[string]any{
+			"id": r.ID, "nick_name": r.NickName, "avatar": r.Avatar, "coins": r.Coins,
+		})
+	}
+	return out, nil
 }

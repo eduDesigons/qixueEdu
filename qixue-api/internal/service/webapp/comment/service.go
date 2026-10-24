@@ -3,12 +3,14 @@ package comment
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	"qixue-api/internal/http/bind"
 	"qixue-api/internal/http/page"
 	"qixue-api/internal/model"
 	"qixue-api/internal/repo"
@@ -189,18 +191,42 @@ func (s *Service) loadUsers(ctx context.Context, ids []int) (map[int]map[string]
 		return nil, err
 	}
 	for _, r := range rows {
-		id := 0
-		switch v := r["id"].(type) {
-		case int64:
-			id = int(v)
-		case int:
-			id = v
-		case float64:
-			id = int(v)
+		id := bind.AsInt(r["id"])
+		if id <= 0 {
+			continue
 		}
-		out[id] = r
+		out[id] = normalizeUserBrief(r, id)
 	}
 	return out, nil
+}
+
+func normalizeUserBrief(r map[string]any, id int) map[string]any {
+	nick := ""
+	switch v := r["nick_name"].(type) {
+	case string:
+		nick = v
+	case []byte:
+		nick = string(v)
+	case nil:
+		nick = ""
+	default:
+		if v != nil {
+			nick = fmt.Sprint(v)
+		}
+	}
+	avatar := ""
+	switch v := r["avatar"].(type) {
+	case string:
+		avatar = v
+	case []byte:
+		avatar = string(v)
+	}
+	return map[string]any{
+		"id":        id,
+		"nick_name": nick,
+		"avatar":    avatar,
+		"coins":     bind.AsInt(r["coins"]),
+	}
 }
 
 func userBrief(users map[int]map[string]any, uid int) map[string]any {
@@ -210,7 +236,7 @@ func userBrief(users map[int]map[string]any, uid int) map[string]any {
 	if u, ok := users[uid]; ok {
 		return u
 	}
-	return map[string]any{"id": uid, "nick_name": nil, "avatar": "", "coins": 0}
+	return map[string]any{"id": uid, "nick_name": "", "avatar": "", "coins": 0}
 }
 
 func keys(m map[int]struct{}) []int {

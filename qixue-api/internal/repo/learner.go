@@ -79,6 +79,14 @@ type CommentRow struct {
 	UpdatedAt *time.Time `gorm:"column:updated_at"`
 }
 
+// course_comments 无 chapter_id；课节评论表才有。避免 GORM 按结构体选出不存在的列。
+func commentSelect(db *gorm.DB, table string) *gorm.DB {
+	if table == "course_comments" {
+		return db.Select("id", "pid", "course_id", "user_id", "content", "created_at", "updated_at")
+	}
+	return db.Select("id", "pid", "course_id", "chapter_id", "user_id", "content", "created_at", "updated_at")
+}
+
 type CourseBrief struct {
 	ID    int     `gorm:"column:id"`
 	Title string  `gorm:"column:title"`
@@ -226,7 +234,7 @@ func (r *learnerRepo) CountComments(ctx context.Context, table string, uid int) 
 
 func (r *learnerRepo) ListComments(ctx context.Context, table string, uid, page, limit int) ([]CommentRow, error) {
 	var rows []CommentRow
-	err := r.db.WithContext(ctx).Table(table).
+	err := commentSelect(r.db.WithContext(ctx).Table(table), table).
 		Where("user_id = ? AND deleted_at IS NULL", uid).
 		Order("id DESC").Offset((page - 1) * limit).Limit(limit).Find(&rows).Error
 	return rows, err
@@ -237,7 +245,7 @@ func (r *learnerRepo) ListCommentChildren(ctx context.Context, table string, pid
 		return nil, nil
 	}
 	var rows []map[string]any
-	err := r.db.WithContext(ctx).Table(table).
+	err := commentSelect(r.db.WithContext(ctx).Table(table), table).
 		Where("pid IN ? AND deleted_at IS NULL", pids).
 		Order("id DESC").Find(&rows).Error
 	return rows, err
@@ -247,10 +255,19 @@ func (r *learnerRepo) ListUserBriefs(ctx context.Context, ids []int) ([]map[stri
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	var rows []map[string]any
+	var rows []UserBriefRow
 	err := r.db.WithContext(ctx).Table("users").
 		Select("id, nick_name, avatar, coins").Where("id IN ?", ids).Find(&rows).Error
-	return rows, err
+	if err != nil {
+		return nil, err
+	}
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, map[string]any{
+			"id": row.ID, "nick_name": row.NickName, "avatar": row.Avatar, "coins": row.Coins,
+		})
+	}
+	return out, nil
 }
 
 func (r *learnerRepo) ListCourseBriefs(ctx context.Context, ids []int) ([]CourseBrief, error) {

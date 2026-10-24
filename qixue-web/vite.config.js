@@ -53,11 +53,12 @@ export default defineConfig(({ mode }) => {
         name: '启学',
         short_name: '启学',
         description: '启学学员端：课程学习、作业与证书',
-        theme_color: '#4286F5',
+        // 闪屏底与页面一致；状态栏透明由 index.html theme-color=transparent 控制
+        theme_color: '#f8f8f8',
         background_color: '#f8f8f8',
         display: 'standalone',
         // 优先独立窗口（无浏览器地址栏/工具栏），桌面 Chromium 可叠层窗口控件
-        display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],
+        display_override: ['window-controls-overlay', 'standalone', 'minimal-ui', 'fullscreen'],
         orientation: 'any',
         lang: 'zh-CN',
         dir: 'ltr',

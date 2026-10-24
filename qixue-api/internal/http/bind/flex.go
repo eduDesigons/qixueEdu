@@ -125,6 +125,12 @@ func AsInt64(v any) int64 {
 		return n
 	case uint:
 		return int64(n)
+	case uint8:
+		return int64(n)
+	case uint16:
+		return int64(n)
+	case uint32:
+		return int64(n)
 	case uint64:
 		return int64(n)
 	case float32:

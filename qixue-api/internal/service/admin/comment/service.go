@@ -37,7 +37,6 @@ type commentRow struct {
 	PID       int            `gorm:"column:pid"`
 	UserID    int            `gorm:"column:user_id"`
 	CourseID  int            `gorm:"column:course_id"`
-	ChapterID int            `gorm:"column:chapter_id"`
 	Content   string         `gorm:"column:content"`
 	CreatedAt *time.Time     `gorm:"column:created_at"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`

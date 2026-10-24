@@ -7,7 +7,8 @@ html.qx-pwa-standalone {
   --safe-right: env(safe-area-inset-right, 0px);
   /* 独立窗口用动态视口，避免地址栏显隐造成的高度跳动（已安装时无地址栏，仍更稳） */
   min-height: 100dvh;
-  background: #f8f8f8;
+  /* 顶栏区域透明，由页面内容延伸进状态栏（配合 theme-color: transparent） */
+  background: transparent;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -22,6 +23,7 @@ html.qx-pwa-standalone body {
 html.qx-pwa-standalone body {
   min-height: 100dvh;
   min-height: -webkit-fill-available;
+  background: #f8f8f8;
   /* 左右安全区（横屏刘海） */
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
