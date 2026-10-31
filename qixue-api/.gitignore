@@ -1,0 +1,9 @@
+.env
+/bin/
+*.exe
+/public/
+/logs/
+*.log
+coverage.out
+coverage.html
+!/storage/fonts/

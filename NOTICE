@@ -1,0 +1,10 @@
+qixue
+Copyright (c) 2026 qixue Contributors
+
+本产品包含以下第三方项目的代码或衍生作品：
+
+1. Vue Naive Admin
+   https://github.com/zclzone/vue-naive-admin
+   许可证见 qixue-admin/LICENSE
+
+其它依赖的许可证以其各自包管理元数据为准（Go modules、npm）。

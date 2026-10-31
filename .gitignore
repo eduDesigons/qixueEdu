@@ -1,0 +1,46 @@
+# secrets & local env
+.env
+.env.local
+.env.*.local
+*.pem
+id_ed25519
+id_ed25519.pub
+
+# Cursor / local AI tooling (never commit workspace state)
+.cursor/
+.agent/
+agent-transcripts/
+
+# build / publish artifacts
+deploy/
+**/bin/
+**/*.exe
+**/dist/
+**/node_modules/
+**/coverage/
+**/.vite/
+**/.turbo/
+**/tmp/
+**/temp/
+
+# logs & runtime
+**/logs/
+**/*.log
+**/.DS_Store
+**/Thumbs.db
+
+# editors / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# go
+**/coverage.out
+**/coverage.html
+vendor/
+
+# python / misc accidental drops
+**/__pycache__/
+*.pyc

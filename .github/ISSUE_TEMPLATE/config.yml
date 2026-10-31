@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 安全问题
+    url: https://github.com/eduDesigons/qixueEdu/blob/master/SECURITY.md
+    about: 请勿公开披露可利用细节，按 SECURITY.md 私下报告

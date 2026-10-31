@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#316C72" />
+    <meta name="color-scheme" content="light" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="__PWA_SHORT_NAME__" />
+    <meta name="format-detection" content="telephone=no, email=no, address=no" />
+    <link rel="icon" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png" />
+    <title></title>
+    <script>
+      (function () {
+        try {
+          var m = window.matchMedia
+          var on = (navigator.standalone === true) || (m && (
+            m('(display-mode: standalone)').matches
+            || m('(display-mode: fullscreen)').matches
+            || m('(display-mode: minimal-ui)').matches
+            || m('(display-mode: window-controls-overlay)').matches
+          ))
+          if (on) document.documentElement.classList.add('qx-pwa-standalone')
+        } catch (e) {}
+      })()
+    </script>
+    <style>
+      html,
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Hiragino Sans GB',
+          'Noto Sans SC', 'Helvetica Neue', 'Microsoft YaHei UI', sans-serif;
+        letter-spacing: -0.011em;
+        -webkit-font-smoothing: antialiased;
+      }
+      .loading-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+      }
+      .dark .loading-container {
+        background-color: #232324;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .loading-container .loading {
+        --speed-of-animation: 0.9s;
+        --gap: 12px;
+        --first-color: #4c86f9;
+        --second-color: #49a84c;
+        --third-color: #f6bb02;
+        --fourth-color: #5B98F8;
+        --fifth-color: #2196f3;
+
+        margin: auto;
+        width: 160px;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: var(--gap);
+      }
+
+      .loading-container .loading span {
+        width: 6px;
+        height: 80px;
+        background: var(--first-color);
+        animation: scale var(--speed-of-animation) ease-in-out infinite;
+      }
+
+      .loading-container .loading span:nth-child(2) {
+        background: var(--second-color);
+        animation-delay: -0.8s;
+      }
+
+      .loading-container .loading span:nth-child(3) {
+        background: var(--third-color);
+        animation-delay: -0.7s;
+      }
+
+      .loading-container .loading span:nth-child(4) {
+        background: var(--fourth-color);
+        animation-delay: -0.6s;
+      }
+
+      .loading-container .loading span:nth-child(5) {
+        background: var(--fifth-color);
+        animation-delay: -0.5s;
+      }
+
+      @keyframes scale {
+        0%,
+        40%,
+        100% {
+          transform: scaleY(0.25);
+        }
+
+        20% {
+          transform: scaleY(1);
+        }
+      }
+    </style>
+  </head>
+  <body class="dark:text-#e9e9e9">
+    <div id="app">
+      <div class="loading-container">
+        <div class="loading">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,44 @@
+name: 缺陷报告
+description: 报告可复现的问题
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: 影响范围
+      options:
+        - qixue-api
+        - qixue-admin
+        - qixue-web
+        - 文档 / CI
+        - 不确定
+    validations:
+      required: true
+  - type: textarea
+    id: describe
+    attributes:
+      label: 问题描述
+      description: 发生了什么，期望是什么
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 环境
+      description: 如 Go / Node 版本、浏览器、操作系统
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充
+      description: 日志片段、截图说明等（请勿粘贴密钥）
