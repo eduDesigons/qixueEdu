@@ -2,11 +2,11 @@
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import PdfLazyViewer from './PdfLazyViewer.vue'
 import PptxLazyViewer from './PptxLazyViewer.vue'
-import '@vue-office/docx/lib/index.css'
-import '@vue-office/excel/lib/index.css'
+import '@vue-office/docx/lib/v3/index.css'
+import '@vue-office/excel/lib/v3/index.css'
 
-const VueOfficeDocx = defineAsyncComponent(() => import('@vue-office/docx'))
-const VueOfficeExcel = defineAsyncComponent(() => import('@vue-office/excel'))
+const VueOfficeDocx = defineAsyncComponent(() => import('@vue-office/docx/lib/v3/vue-office-docx.mjs'))
+const VueOfficeExcel = defineAsyncComponent(() => import('@vue-office/excel/lib/v3/vue-office-excel.mjs'))
 
 const props = defineProps({
   src: { type: String, default: '' },

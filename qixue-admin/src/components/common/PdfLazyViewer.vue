@@ -5,7 +5,7 @@
  */
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-const VueOfficePdf = defineAsyncComponent(() => import('@vue-office/pdf'))
+const VueOfficePdf = defineAsyncComponent(() => import('@vue-office/pdf/lib/v3/vue-office-pdf.mjs'))
 
 const props = defineProps({
   src: { type: String, default: '' },
